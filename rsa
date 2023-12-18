@@ -1,62 +1,90 @@
-import time
-import math
-import sys
+#!/bin/bash
 
-def pollard_rho(n):
-    if n % 2 == 0:
-        return 2
-    
-    x = 2
-    y = 2
-    d = 1
-    
-    f = lambda x: (x**2 + 1) % n
-    
-    while d == 1:
-        x = f(x)
-        y = f(f(y))
-        d = math.gcd(abs(x - y), n)
-    
-    return d
-
-def is_prime(num):
-    if num < 2:
-        return False
-    for i in range(2, int(math.sqrt(num)) + 1):
-        if num % i == 0:
-            return False
-    return True
-
-def main():
-    if len(sys.argv) != 2:
-        print("Usage: python factorize.py <file>")
+pollard_rho() {
+    if [ $(($1 % 2)) -eq 0 ]; then
+        echo "2"
         return
+    fi
 
-    file_path = sys.argv[1]
+    x=2
+    y=2
+    d=1
 
-    try:
-        with open(file_path, 'r') as file:
-            number = int(file.readline().strip())
-    except FileNotFoundError:
-        print(f"File '{file_path}' not found.")
+    f() {
+        echo $(($(($1 * $1)) + 1))
+    }
+
+    while [ $d -eq 1 ]; do
+        x=$(f $x)
+        y=$(f $(f $y))
+        d=$(gcd $((x - y < 0 ? y - x : x - y)) $1)
+    done
+
+    echo $d
+}
+
+is_prime() {
+    if [ $1 -lt 2 ]; then
+        return 1
+    fi
+
+    for ((i = 2; i <= $(( $1 / 2 )); i++)); do
+        if [ $(($1 % $i)) -eq 0 ]; then
+            return 1
+        fi
+    done
+
+    return 0
+}
+
+gcd() {
+    if [ $2 -eq 0 ]; then
+        echo $1
+    else
+        echo $(gcd $2 $(($1 % $2)))
+    fi
+}
+
+main() {
+    if [ $# -ne 1 ]; then
+        echo "Usage: $0 <file>"
         return
-    except ValueError:
-        print("Invalid data in the file. Please make sure it contains a single integer.")
-        return
+    fi
 
-    start_time = time.time()
-    p = pollard_rho(number)
-    while not is_prime(p):
-        p = pollard_rho(p)
-        if time.time() - start_time > 5:
-            print("Time limit exceeded")
+    file_path=$1
+
+    if [ ! -f $file_path ]; then
+        echo "File '$file_path' not found."
+        return
+    fi
+
+    number=$(head -n 1 $file_path | tr -d '\n\r')
+
+    if ! [[ $number =~ ^[0-9]+$ ]]; then
+        echo "Invalid data in the file. Please make sure it contains a single integer."
+        return
+    fi
+
+    start_time=$(date +%s)
+    p=$(pollard_rho $number)
+    
+    while ! is_prime $p; do
+        p=$(pollard_rho $p)
+        current_time=$(date +%s)
+        elapsed_time=$((current_time - start_time))
+        if [ $elapsed_time -gt 5 ]; then
+            echo "Time limit exceeded"
             return
-    
-    q = number // p
-    if p == number or q == number:
-        print(f"{number} is prime.")
-    else:
-        print(f"{number}={p}*{q}")
+        fi
+    done
 
-if __name__ == '__main__':
-    main()
+    q=$(( $number / $p ))
+
+    if [ $p -eq $number ] || [ $q -eq $number ]; then
+        echo "$number is prime."
+    else
+        echo "$number=$p*$q"
+    fi
+}
+
+main "$@"
