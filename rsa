@@ -1,41 +1,72 @@
-
 #!/usr/bin/python3
 
-# library to get arguments
+
 import sys
+import random
+import time
 
 
-# fn unpack number factorial
-def fc():
-    """
-    This function reads a file provided as a command-line argument (sys.argv[1]).
-    It iterates through each line in the file.
-    Converts each line to an integer (revnumber = int(revnumber)).
-    Checks if the number is even and factors it by 2 if it is.
-    if the number is odd, it starts checking for factors from 3 up to half the number (revnumber // 2). 
-    It factors the number and prints it in the format n=p*q (where p and q are factors of n).
-    """
+def is_prime(num, k=20):
+    '''
+    '''
+    if num == 2 or num == 3:
+        return True
+    if num < 2 or num % 2 == 0:
+        return False
+
+
+    d = num - 1
+    r = 0
+    while d % 2 == 0:
+        d //= 2
+        r += 1
+
+
+    for _ in range(k):
+        a = random.randint(2, num - 2)
+        x = pow(a, d, num)
+        if x == 1 or x == num - 1:
+            continue
+        for _ in range(r - 1):
+            x = pow(x, 2, num)
+            if x == num - 1:
+                break
+        else:
+            return False
+
+
+    return True
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: rsa <file>")
+        exit()
+
+
+    input_file = sys.argv[1]
+
+
     try:
-      """Exception Handling (try-except): The try block attempts to read the file specified in the command-line argument and perform the factorization process."""
-        revfile = sys.argv[1]
-        with open(revfile) as f:
-            for revnumber in f:
-                revnumber = int(revnumber)
-                if revnumber % 2 == 0:
-                        print("{}={}*{}".format(revnumber, revnumber // 2, 2))
-                        continue
-                i = 3
-                while i < revnumber // 2:
-                    if revnumber % i == 0:
-                        print("{}={}*{}".format(revnumber, revnumber // i, i))
-                        break
-                    i = i + 2
-                if i == (revnumber // 2) + 1:
-                    print("{}={}*{}".format(revnumber, revnumber, 1))
-    except (IndexError):
-        pass
+        with open(input_file, 'r') as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        print("File not found")
+        exit()
 
 
-# autostart 
-# Autostart (fc()): At the end of the script, the function fc is invoked, triggering the file reading and factorization process.
-fc()
+    start_time = time.time()
+
+
+    num = int(lines[0].strip())
+
+
+    for i in range(2, num//2):
+        if num % i == 0 and is_prime(i) and is_prime(num//i):
+            print(f"{num}={i}*{num//i}")
+            break
+
+
+        if time.time() - start_time > 5:
+            print("Time limit exceeded")
+            exit()
