@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 import time
 import math
 import sys
@@ -36,26 +35,30 @@ def main():
 
     file_path = sys.argv[1]
 
-    start_time = time.time()
     try:
         with open(file_path, 'r') as file:
             number = int(file.readline().strip())
-        p = pollard_rho(number)
-        while not is_prime(p):
-            p = pollard_rho(p)
-        q = number // p
-        if p == number or q == number:
-            print(f"{number} is prime.")
-        else:
-            print(f"{number}={p}*{q}")
-
-        if time.time() - start_time > 5:
-            print("Time limit exceeded")
-            exit()
-    
     except FileNotFoundError:
         print(f"File '{file_path}' not found.")
+        return
+    except ValueError:
+        print("Invalid data in the file. Please make sure it contains a single integer.")
+        return
 
+    start_time = time.time()
+    p = pollard_rho(number)
+    while not is_prime(p):
+        p = pollard_rho(p)
+    
+    q = number // p
+    if p == number or q == number:
+        print(f"{number} is prime.")
+    else:
+        print(f"{number}={p}*{q}")
+
+    if time.time() - start_time > 5:
+        print("Time limit exceeded")
+        return
 
 if __name__ == '__main__':
     main()
