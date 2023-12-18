@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import time
 import math
 import sys
@@ -49,16 +48,15 @@ def main():
     p = pollard_rho(number)
     while not is_prime(p):
         p = pollard_rho(p)
+        if time.time() - start_time > 5:
+            print("Time limit exceeded")
+            return
     
     q = number // p
     if p == number or q == number:
         print(f"{number} is prime.")
     else:
         print(f"{number}={p}*{q}")
-
-    if time.time() - start_time > 5:
-        print("Time limit exceeded")
-        return
 
 if __name__ == '__main__':
     main()
